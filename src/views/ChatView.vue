@@ -1,18 +1,20 @@
 <template>
-  <div class="d-flex flex-column min-vh-100">
-    <div class="container my-3">
-      <ul class="list-unstyled" ref="messages" id="messages"></ul>
+  <!-- colocar a div com os dados das mensagens desse template em um component chamado Message, ao qual irá receber os valores por props (defineProps()) -->
+  <section class="chat">
+    <div v-for="data, index in allMessages" :key="index">
+      <p>{{ data.message }}</p>
+      <span>{{ data.email }}</span>
+      <span>{{ data.time }}</span>
     </div>
 
-    <div class="container mt-auto p-3">
-      <div class="input-group">
+      <form @submit.prevent="sendMessage">
         <input
           type="text"
           class="form-control"
           id="input"
-          v-model="user.text"
-          ref="chat"
-        />
+          v-model="text"
+          ref="boxChat"
+          />
 
         <button
           id="send"
@@ -22,96 +24,92 @@
         >
           Enviar
         </button>
-      </div>
-    </div>
-  </div>
+      </form>
+  </section>
 </template>
 
 <script lang="ts" setup>
+
+import type { IBoxChat } from "@/interfaces/IBoxChat.js";
+import type { IChat } from "@/interfaces/IChat";
 import { ref, onMounted, type Ref } from "vue";
-import { reactive } from 'vue';
-// import mountMessageCommon from "../modules/functions/mountMessage";
-// import getTime from "../modules/functions/getTime";
 
+const text: Ref<string> = ref('');
+const allMessages: Ref<IChat[]> = ref([]);
 
-const user = reactive({
-  text: '',
-});
-
-const messages = ref(null);
-const chat: Ref<null> = ref(null);
+const boxChat: Ref<IBoxChat | null> = ref(null);
 
 onMounted(() => {
-  chat.value.onkeydown = (e: { key: string; }) => { // tipar chat.value;
-    if (e.key === "Enter") sendMessage();
-  };
+  console.log('Mounted!');
 });
 
-// const unauthorized = () => (window.location.href = "http://localhost:5173/");
-// const user_global = ref(null);
+const unauthorized = () => (window.location.href = "http://localhost:5173/");
 
-// const mountMessage = (sentBy, content, time) => {
-//   const user = user_global.value;
-//   mountMessageCommon(user, sentBy, content, time);
-// };
+const createMessage = () => {
+  const email = localStorage.getItem('email');
+  const time = new Date(Date.now()).getHours() + ":" + new Date(Date.now()).getMinutes();
+  const message = text.value;
 
-// const url = window.location.href;
-// const queryString = new URLSearchParams(new URL(url).search);
-// const token = queryString.get("token");
-const socket = new WebSocket(`ws://localhost:5173/chat`); // need token?
+  const messageData: IChat = { email, message, time };
+
+  if (message !== "") allMessages.value.push(messageData);
+};
+
+const socket = new WebSocket(`ws://localhost:3000`);
 
 onMounted(() => {
   socket.onopen = () => {
-    console.log("Conectado");
+    console.log("Conected");
   };
 
-  // socket.onmessage = data => {
-  //   let { message, user, history } = JSON.parse(data.data);
-  //   let sentBy;
-  //   if (user) user_global.value = user;
-  //   if (message) {
-  //     message = JSON.parse(message);
-  //     sentBy = message.sentBy;
-  //     mountMessage(sentBy, message.message, getTime());
-  //   };
+  socket.onmessage = (messageData) => {
+    // const dataParsed: any = JSON.parse(messageData.data);
+    // console.log(dataParsed.message);
+    // if (dataParsed.hasOwnProperty("message")) {
+    //   allMessages.value.push(JSON.parse(dataParsed.message));
+    // };
 
-  //   if (history) {
-  //     history.forEach(message => {
-  //       let time = message.createdAt;
-  //       let date = new Date(time);
-  //       let hours = date.getHours();
-  //       hours = hours < 10 ? `0${hours}` : hours;
-  //       let minutes = date.getMinutes();
-  //       minutes = minutes < 10 ? `0${minutes}` : minutes;
-  //       let full_time = `${hours}:${minutes}`;
-  //       mountMessage(message.username, message.message, full_time);
-  //     });
-  //   };
+    console.log(messageData);
+    const dataParsed = messageData.data; // return Hello From server
+    console.log(messageData.currentTarget) // ou .target
+    console.log(dataParsed); // return Blob with your size and type = ''
 
-  // };
+    if (messageData.type === "message") { // dataParsed.hasOwnProperty.call("message")
+      createMessage();
+    };
 
-  // socket.onclose = event => {
-  //   console.log("Desconectado", event);
-  //   alert(event.reason);
-  //   if (event.code === 3000 || event.code === 3001) unauthorized();
-  // };
+    // console.log(messageData);
+    // console.log(messageData.type); // that return "message"
 
-  // socket.onerror = () => {
-  //   console.log("Erro!");
-  // };
+    // // const data = JSON.stringify(messageData.data); // ou messageData.message? (não existe) ou  messageData.type
+    // const dataParsed = JSON.parse(messageData.data);
+
+    // if (dataParsed.hasOwnProperty.call("message")) {
+    //   allMessages.value.push(JSON.parse(dataParsed.message));
+    // }
+  };
+
+  socket.onclose = event => {
+    console.log("Desconectado", event);
+    alert(event.reason);
+    // if (event.code === 3000 || event.code === 3001) unauthorized();
+  };
+
+  socket.onerror = () => {
+    console.log("Erro!");
+  };
 });
 
 const sendMessage = () => {
-  console.log('send a message here!');
-  // if (!input.value) {
-  //   return;
-  // };
+  createMessage();
+  text.value = '';
 
-  // socket.send(
-  //   JSON.stringify({ sentBy: user_global.value, message: input.value })
-  // );
+  const allMessagesStringfy = JSON.stringify(allMessages.value);
 
-  // mountMessage(user_global.value, input.value, getTime());
-  // input.value = "";
+  const allMessagesParsed = JSON.parse(allMessagesStringfy);
+  console.log(allMessagesParsed);
+
+  socket.send(allMessagesStringfy);
 };
+
 </script>
