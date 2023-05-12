@@ -17,11 +17,12 @@ wss.on("connection", (ws) => {
 
   // When the client send a message to the server
   ws.on("message", (data) => {
-    // const messageUser = JSON.parse(data.toString());
+    // const message = JSON.parse(data.toString());
     wss.clients.forEach((wsClient) => {
       if (wsClient !== ws && wsClient.readyState === WebSocket.OPEN) {
-        wsClient.send(JSON.stringify({ message: data })); // separar lógica do JSON?
-      }
+        const messageData = { message: data.toString() };
+        wsClient.send(JSON.stringify(messageData));
+      };
     });
   });
 

@@ -4,10 +4,10 @@ import { RouterView } from 'vue-router'
 
 <template>
   <header content="text/html; charset=utf-8" text="text/x-typescript">
-      <nav>
+    <nav>
         <RouterLink to="/">Home</RouterLink>
         <RouterLink to="/login">Login</RouterLink>
-      </nav>
+    </nav>
   </header>
   <RouterView />
 </template>

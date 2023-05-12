@@ -1,23 +1,24 @@
 <template>
   <h2>Login</h2>
-  <form>
-    <form @submit.prevent="login">
-        <input
-          v-model="user.email"
-          type="text"
-          class="form-control"
-          placeholder="Email"
-        >
-        <input
-          v-model="user.password"
-          type="password"
-          class="form-control"
-          placeholder="Password"
-        >
-        <button type="submit">
-          Login
-        </button>
-      </form>
+  <form @submit.prevent="login">
+    <input
+      v-model="user.email"
+      type="text"
+      class="form-control"
+      placeholder="Email"
+    >
+    <input
+      v-model="user.password"
+      type="password"
+      class="form-control"
+      placeholder="Password"
+    >
+    <button
+      type="submit"
+      class="btn btn-dark fw-semibold"
+      >
+      Login
+    </button>
   </form>
 </template>
 
@@ -37,7 +38,8 @@ const router = useRouter();
 
 // const auth = useAuth();
 const login = () => {
-  localStorage.setItem('email', user.email);
+  sessionStorage.setItem('email', user.email);
+  // localStorage.setItem('email', user.email);
 
   router.push({ path: '/chat' });
   // try {
@@ -50,3 +52,9 @@ const login = () => {
 };
 
 </script>
+
+<!-- <style lang="scss">
+
+@import './assets/style.scss'
+
+</style> -->
